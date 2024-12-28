@@ -1,14 +1,16 @@
 mod wordle;
 
 use wordle::get_words;
+use wordle::final_info;
+use wordle::final_word;
 use wordle::get_letters;
 use wordle::filter_words;
 use std::io::{self, Write};
 use wordle::grab_best_word;
+use wordle::get_random_word;
 use wordle::valid_word_prob;
 use std::collections::HashSet;
 use wordle::make_probabilities;
-
 
 
 fn main() -> std::io::Result<()> {
@@ -36,6 +38,10 @@ fn main() -> std::io::Result<()> {
     let mut in_word: HashSet<char> = HashSet::new();
 
     let mut words = get_words(input.trim())?;
+
+    let final_word = get_random_word(&words);
+
+    let final_word_info = final_info(final_word);
 
     println!("There is a total of {:?} words to pick from", words.len());
 

@@ -209,3 +209,30 @@ pub fn filter_words(letters: &HashMap<char, LetterInfo>, words: Vec<String>, fin
 
     new_words
 }
+
+
+
+pub fn final_info(final_word: String) -> HashMap<char, i64> {
+    let mut final_word_map: HashMap<char, i64> = HashMap::new();
+
+    for char in final_word.chars() {
+        *final_word_map.entry(char).or_insert(0) += 1;
+    }
+
+    final_word_map
+}
+
+
+
+pub fn get_random_word(words: &Vec<String>) -> String {
+    let mut rng = rand::thread_rng();
+    let random_index = rng.gen_range(0..words.len());
+    words[random_index].clone()
+}
+
+
+
+pub fn comapre(final_word: &String, guess: String, letters: &HashMap<char, LetterInfo>, final_info: &HashMap<char, i64>, final_guess: &Vec<char>, in_word: &HashSet<char>) {
+    
+
+}
