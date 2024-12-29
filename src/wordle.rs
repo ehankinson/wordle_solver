@@ -212,11 +212,19 @@ pub fn filter_words(letters: &HashMap<char, LetterInfo>, words: Vec<String>, fin
 
 
 
-pub fn final_info(final_word: String) -> HashMap<char, i64> {
-    let mut final_word_map: HashMap<char, i64> = HashMap::new();
+pub fn final_info(final_word: &String) -> HashMap<char, Vec<usize>> {
+    let mut final_word_map: HashMap<char, Vec<usize>> = HashMap::new();
 
-    for char in final_word.chars() {
-        *final_word_map.entry(char).or_insert(0) += 1;
+    for (i, char) in final_word.chars().enumerate() {
+        if !final_word_map.contains_key(&char) {
+            let indexs= vec![i];
+            final_word_map.insert(char, indexs);
+        }
+        else {
+            if let Some(indexs) = final_word_map.get_mut(&char) {
+                indexs.push(i);
+            }
+        }
     }
 
     final_word_map
@@ -232,7 +240,69 @@ pub fn get_random_word(words: &Vec<String>) -> String {
 
 
 
-pub fn comapre(final_word: &String, guess: String, letters: &HashMap<char, LetterInfo>, final_info: &HashMap<char, i64>, final_guess: &Vec<char>, in_word: &HashSet<char>) {
+pub fn compare(final_word: &String, guess: String, letters: &mut HashMap<char, LetterInfo>, final_info: &HashMap<char, Vec<usize>>, final_guess: &mut Vec<char>, in_word: &mut HashSet<char>) -> bool {
+    if &guess == final_word { return true }
     
+    let mut is_word = true;
+    let mut guess_letters: HashMap<char, Vec<usize>> = HashMap::new();
 
+    for (i, char) in guess.chars().enumerate() {
+
+        if !guess_letters.contains_key(&char) {
+            let indexs= vec![i];
+            guess_letters.insert(char, indexs);
+        }
+        else {
+            if let Some(indexs) = guess_letters.get_mut(&char) {
+                indexs.push(i);
+            }
+        }
+
+        if final_info.contains_key(&char) {
+
+            if let Some(letter_info) = letters.get_mut(&char) {
+                letter_info.in_word = Some(true);
+
+                if let Some(indexs) = guess_letters.get_mut(&char) {
+
+                    if indexs.contains(&i) {
+
+                        letter_info.position.insert(i);
+                        final_guess[i] = char;
+                        in_word.insert(char);
+
+                    }
+                    else {
+
+                        letter_info.not_position.insert(i);
+                        in_word.insert(char);
+                        is_word = false;
+                    }
+                }
+            }
+        }
+    }
+
+    for (key, value) in guess_letters {
+
+        if final_info.contains_key(&key) {
+            let len = value.len();
+            let final_len = final_info.len();
+
+            let letter_info = letters.get_mut(&key).unwrap();
+
+            if len > final_len {
+                letter_info.triple = false;
+                if len == 2 {
+                    letter_info.double = false;
+                }
+            }
+            else if len == 3 {
+                letter_info.double = false;
+            }
+
+        }
+    }
+        
+    is_word
 }

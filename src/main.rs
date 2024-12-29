@@ -1,8 +1,8 @@
 mod wordle;
 
+use wordle::compare;
 use wordle::get_words;
 use wordle::final_info;
-use wordle::final_word;
 use wordle::get_letters;
 use wordle::filter_words;
 use std::io::{self, Write};
@@ -41,11 +41,11 @@ fn main() -> std::io::Result<()> {
 
     let final_word = get_random_word(&words);
 
-    let final_word_info = final_info(final_word);
+    let final_word_info = final_info(&final_word);
 
     println!("There is a total of {:?} words to pick from", words.len());
 
-    let letters = get_letters();
+    let mut letters = get_letters();
 
     let probabilites = make_probabilities(&words);
 
@@ -54,6 +54,12 @@ fn main() -> std::io::Result<()> {
     let best_word = grab_best_word(ordered_words);
 
     println!("The best word is {}", best_word);
+    
+    let is_word = compare(&final_word, best_word, &mut letters,&final_word_info, &mut final_guess, &mut in_word);
+
+    if is_word {
+        println!("You guessed the correct word")
+    }
 
     words = filter_words(&letters, words, &final_guess, &in_word);
 
