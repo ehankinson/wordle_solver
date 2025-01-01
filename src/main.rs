@@ -1,15 +1,17 @@
 mod wordle;
 
+use std::time::Instant;
+use std::io::{self, Write};
+use std::collections::HashSet;
+
 use wordle::compare;
 use wordle::get_words;
 use wordle::final_info;
 use wordle::get_letters;
 use wordle::filter_words;
-use std::io::{self, Write};
 use wordle::grab_best_word;
 use wordle::get_random_word;
 use wordle::valid_word_prob;
-use std::collections::HashSet;
 use wordle::make_probabilities;
 
 
@@ -33,35 +35,59 @@ fn main() -> std::io::Result<()> {
         }
     }
 
-    let mut final_guess = vec!['\0'; 5];
+    let mut count = 0;
+    let sim = 1000;
 
-    let mut in_word: HashSet<char> = HashSet::new();
+    let start = Instant::now();
 
-    let mut words = get_words(input.trim())?;
+    for _ in 0..sim {
 
-    let final_word = get_random_word(&words);
+        let mut final_guess = vec!['\0'; 5];
 
-    let final_word_info = final_info(&final_word);
+        let mut in_word: HashSet<char> = HashSet::new();
 
-    println!("There is a total of {:?} words to pick from", words.len());
+        let mut words = get_words(input.trim())?;
 
-    let mut letters = get_letters();
+        let final_word = get_random_word(&words);
 
-    let probabilites = make_probabilities(&words);
+        // println!("The word to be guessed is: {:?}", final_word);
 
-    let ordered_words = valid_word_prob(&words, probabilites);
+        let final_word_info = final_info(&final_word);
 
-    let best_word = grab_best_word(ordered_words);
+        // println!("There is a total of {:?} words to pick from", words.len());
 
-    println!("The best word is {}", best_word);
-    
-    let is_word = compare(&final_word, best_word, &mut letters,&final_word_info, &mut final_guess, &mut in_word);
+        let mut letters = get_letters();
 
-    if is_word {
-        println!("You guessed the correct word")
+        for _ in 0..6 {
+
+            let probabilites = make_probabilities(&words);
+
+            let ordered_words = valid_word_prob(&words, probabilites);
+
+            let best_word = grab_best_word(ordered_words);
+
+            // println!("The best word is {}", best_word);
+            
+            let is_word = compare(&final_word, best_word, &mut letters,&final_word_info, &mut final_guess, &mut in_word);
+
+            if is_word {
+                // println!("You guessed the correct word");
+                // let last_guess: String = final_guess.into_iter().collect();
+                // println!("The final word was: {:}", last_guess);
+                count += 1;
+                break;
+            }
+
+            words = filter_words(&letters, words, &final_guess, &in_word);
+
+            // println!("There are now {:?} words to choose from.", words.len());
+        }
+       
     }
-
-    words = filter_words(&letters, words, &final_guess, &in_word);
+    let duration = start.elapsed();
+    println!("The wordle has a success rate of {:.2}%", (count as f64 / sim as f64) * 100.0);
+    println!("Time taken: {:.2?}", duration);
 
     Ok(())
+    
 }
